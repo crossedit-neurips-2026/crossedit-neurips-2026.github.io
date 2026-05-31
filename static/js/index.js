@@ -93,32 +93,6 @@ window.addEventListener('scroll', function() {
 var isMobile = window.matchMedia('(max-width: 768px)').matches ||
                /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-// Video carousel autoplay when in view (desktop only)
-function setupVideoCarouselAutoplay() {
-    const carouselVideos = document.querySelectorAll('.results-carousel video');
-
-    if (carouselVideos.length === 0) return;
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            const video = entry.target;
-            if (entry.isIntersecting) {
-                video.play().catch(e => {
-                    console.log('Autoplay prevented:', e);
-                });
-            } else {
-                video.pause();
-            }
-        });
-    }, {
-        threshold: 0.5
-    });
-
-    carouselVideos.forEach(video => {
-        observer.observe(video);
-    });
-}
-
 $(document).ready(function() {
     var options = {
 		slidesToScroll: 1,
@@ -126,11 +100,19 @@ $(document).ready(function() {
 		loop: true,
 		infinite: true,
 		autoplay: false,
-		autoplaySpeed: 5000,
+		autoPlay: false,
     }
 
 	// Initialize all div with carousel class
     var carousels = bulmaCarousel.attach('.carousel', options);
+
+    // Force-stop autoplay on every carousel instance regardless of library version
+    if (carousels && carousels.length) {
+        carousels.forEach(function(carousel) {
+            if (carousel.stopAutoplay) carousel.stopAutoplay();
+            if (carousel.pause) carousel.pause();
+        });
+    }
 
     bulmaSlider.attach();
 
@@ -140,9 +122,6 @@ $(document).ready(function() {
             video.removeAttribute('autoplay');
             video.pause();
         });
-    } else {
-        // Setup video carousel autoplay on desktop only
-        setupVideoCarouselAutoplay();
     }
 
     // Show first frame as thumbnail for all videos
